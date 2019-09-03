@@ -12,8 +12,6 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-extra-markers/dist/css/leaflet.extra-markers.min.css';
 window.$ = $;
-var parse_georaster = require("georaster");
-var GeoRasterLayer = require("georaster-layer-for-leaflet");
 // work around broken icons when using webpack, see https://github.com/PaulLeCam/react-leaflet/issues/255
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -123,11 +121,7 @@ export default class DoubleView extends Component {
 
   georef(inputUrl, controlPoints) {
     console.log("GEOREF");
-
-    var jsonString = JSON.stringify({
-                                          url: inputUrl,
-                                          points: controlPoints
-                                        });
+    var jsonString = JSON.stringify({url: inputUrl, points: controlPoints});
     console.log(jsonString);
     fetch('http://localhost:3000/georeference', {
     			method: 'POST',
@@ -138,11 +132,7 @@ export default class DoubleView extends Component {
     		}).then(response => {
     				return response.json()
     			}).then(json => {
-//    				this.setState({
-//    					user:json
-//    				});
             console.log("RESULT = " + JSON.stringify(json));
-
             var layer = L.tileLayer('./tiles/{z}/{x}/{y}.png',
             {
             attribution: 'Map data',

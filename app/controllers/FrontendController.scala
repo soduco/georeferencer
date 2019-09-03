@@ -49,7 +49,7 @@ class FrontendController @Inject()(assets: Assets, errorHandler: HttpErrorHandle
           println("CP = " + body.points)
           val cpsAsString = body.points.flatMap(cp=>Seq("-gcp", s"${cp.x} ${cp.y} ${cp.long} ${cp.lat}"))
           println("CP = " + cpsAsString.mkString(" "))
-          val downloadCommand = s"wget ${body.url}full/1024,1024/0/native.jpg"
+          val downloadCommand = s"wget ${body.url}full/full/0/native.jpg"
           println("downloadCommand = " + downloadCommand)
           val exitCodeDownload = downloadCommand.!
           println("Download = " + exitCodeDownload)

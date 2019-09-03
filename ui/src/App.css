@@ -31,3 +31,12 @@
     transform: rotate(360deg);
   }
 }
+
+.container, .tabscontainer, .react-tabs__tab-panel--selected, .map {
+  height: 60vmin;
+}
+
+#map1, #map2 { width: 48%; height: 100%; }
+#map1 { float: left; display: inline-block}
+#map2 { float: right; display: inline-block}
+#buttons {width: 4%; height:100%; display: inline-block}

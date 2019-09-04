@@ -179,7 +179,8 @@ export default class DoubleView extends Component {
                   polyline: false,
                   polygon: false,
                   circle: false,
-                  marker: false
+                  marker: false,
+                  circlemarker: false
               }}
           />
         </FeatureGroup>

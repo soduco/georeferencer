@@ -29,7 +29,7 @@ export default class DoubleView extends Component {
       lng: 4.7209796,
       zoom: 13,
       inputUrl: 'https://gallica.bnf.fr/iiif/ark:/12148/btv1b53099839d/f1/',
-      //inputUrl: 'https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/info.json',
+      //inputUrl: 'https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/',
       layer: null,
       originalSizex: null,
       originalSizey: null,
@@ -41,10 +41,6 @@ export default class DoubleView extends Component {
       rightCoord: null
     };
   }
-
-//  addControlPoint(point, coord) {
-//    this.state.controlPoints.push({pointid: this.state.controlPoints.length, x: point.x, y: point.y, lat:coord.lat, lng:coord.lng})
-//  }
 
   mapRef1 = createRef()
   mapRef2 = createRef()
@@ -61,10 +57,10 @@ export default class DoubleView extends Component {
         newLayer.addTo(map1.leafletElement)
         var _this = this;
         $.when(newLayer._infoDeferred).done(function() {
-          console.log("infoDeferred")
+//          console.log("infoDeferred")
           var imageSizes = newLayer._imageSizesOriginal
           var originalSize = imageSizes[imageSizes.length - 1]
-          console.log("iiifLayer = " + originalSize.x + " - " + originalSize.y)
+//          console.log("iiifLayer = " + originalSize.x + " - " + originalSize.y)
           _this.setState({
             layer: newLayer,
             originalSizex: originalSize.x,
@@ -78,13 +74,21 @@ export default class DoubleView extends Component {
     }
   }
 
+  // remove the last layer of FeatureGroup a if it is longer thant FeatureGroup b.
+  cleanIfLonger(a,b) {
+    if (a.getLayers().length > b.getLayers().length) {
+      a.removeLayer(a.getLayers().pop())
+    }
+  }
+
   onLeftClick = (e) => {
-    console.log("LEFT CLICK " + e.latlng);
     const map1 = this.mapRef1.current
     if (map1 != null) {
       map1.leafletElement.off('click', this.onLeftClick, this);
-      let layers = this.leftFeatureGroupRef.current.leafletElement.getLayers()
-      let pointid = layers?layers.length:0;
+      let leftFG = this.leftFeatureGroupRef.current.leafletElement
+      let rightFG = this.rightFeatureGroupRef.current.leafletElement
+      this.cleanIfLonger(leftFG,rightFG)
+      let pointid = leftFG.getLayers()?leftFG.getLayers().length:0;
       var markericon = L.ExtraMarkers.icon({
                                  icon: 'fa-number',
                                  number: ''+pointid,
@@ -94,25 +98,24 @@ export default class DoubleView extends Component {
       var marker = L.marker(e.latlng, {
         icon: markericon
       });
-      this.leftFeatureGroupRef.current.leafletElement.addLayer(marker);
+      leftFG.addLayer(marker);
     }
-    this.setState({left: e.latlng.lat+','+e.latlng.lng})
     var coord = this.state.rc.project(e.latlng);
-    console.log("rc coord = " + coord);
-    this.setState({leftCoord: coord})
+//    console.log("rc coord = " + coord);
+    this.setState({left: e.latlng.lat+','+e.latlng.lng, leftCoord: coord})
     if (this.state.rightCoord) {
-//      this.addControlPoint(this.state.leftCoord, this.state.rightCoord);
       this.setState({left: '', right: '', status: '', leftCoord: null, rightCoord: null})
     }
   }
 
   onRightClick(e) {
-    console.log("RIGHT CLICK " + e.latlng);
     const map2 = this.mapRef2.current
     if (map2 != null) {
       map2.leafletElement.off('click', this.onRightClick, this);
-      let layers = this.rightFeatureGroupRef.current.leafletElement.getLayers()
-      let pointid = layers?layers.length:0;
+      let leftFG = this.leftFeatureGroupRef.current.leafletElement
+      let rightFG = this.rightFeatureGroupRef.current.leafletElement
+      this.cleanIfLonger(rightFG,leftFG)
+      let pointid = rightFG.getLayers()?rightFG.getLayers().length:0;
       let marker = L.marker(e.latlng, {
         icon: L.ExtraMarkers.icon({
           icon: 'fa-number',
@@ -121,22 +124,13 @@ export default class DoubleView extends Component {
           markerColor: 'black'
         })
       });
-      this.rightFeatureGroupRef.current.leafletElement.addLayer(marker);
+      rightFG.addLayer(marker);
     }
-    this.setState({right: e.latlng.lat+','+e.latlng.lng})
-    this.setState({rightCoord: e.latlng})
+    this.setState({right: e.latlng.lat+','+e.latlng.lng, rightCoord: e.latlng})
     if (this.state.leftCoord) {
-//      this.addControlPoint(this.state.leftCoord, this.state.rightCoord);
       this.setState({left: '', right: '', status: '', leftCoord: null, rightCoord: null})
     }
   }
-
-  onPointClick(e) {
-    console.log("POINT CLICK " + e.latlng);
-    console.log('sourceTarget = ' + e.sourceTarget)
-    e.target.options.color = 'orange';
-  }
-
 
   georef() {
     console.log("GEOREF " + this.state.inputUrl);
@@ -171,7 +165,7 @@ export default class DoubleView extends Component {
   }
 
   newPoint() {
-      console.log("New Point ?" + this.state.status)
+//      console.log("New Point ?" + this.state.status)
       this.setState({status: 'new point'})
       const map1 = this.mapRef1.current
       if (map1 != null) {
@@ -380,96 +374,6 @@ export default class DoubleView extends Component {
   }
 
   _editableFG = null
-  _onFeatureGroupReady = (reactFGref) => {
-  console.log("_onFeatureGroupReady");
-    // populate the leaflet FeatureGroup with the geoJson layers
-
-    if (reactFGref != null) {
-      var _this = this;
-      $.when(this.state.layer._infoDeferred).done(function() {
-        _this.createImageInfo();
-        let leafletLeftGeoJSON = new L.GeoJSON(_this.getLeftControlPoints(), {
-          pointToLayer: function(geoJsonPoint, latlng) {
-            //return L.circleMarker(latlng);
-            console.log(geoJsonPoint.pointid)
-            return L.marker(latlng, {
-                                      icon: L.ExtraMarkers.icon({
-                                          icon: 'fa-number',
-                                          number: ''+geoJsonPoint.pointid,
-                                          shape: 'circle',
-                                          markerColor: 'black'
-                                      })
-                                  });
-//          },
-//          style: function (feature) {
-//            return {color: 'blue'};
-          }
-        });
-        let leafletRightGeoJSON = new L.GeoJSON(_this.getRightControlPoints(), {
-          pointToLayer: function(geoJsonPoint, latlng) {
-            //return L.circleMarker(latlng);
-            console.log(geoJsonPoint.pointid)
-            return L.marker(latlng, {
-                                      icon: L.ExtraMarkers.icon({
-                                          icon: 'fa-number',
-                                          number: ''+geoJsonPoint.pointid,
-                                          shape: 'circle',
-                                          markerColor: 'black'
-                                      })
-                                  });
-//          },
-//          style: function (feature) {
-//            return {color: 'blue'};
-          }
-        });
-//        let leafletFG = reactFGref.leafletElement;
-//      leafletFG.eachLayer((layer) => {
-//        layer.addData(leafletGeoJSON);
-//      });
-//      leafletGeoJSON.eachLayer( (layer) => {
-//        leafletFG.addLayer(layer);
-//      });
-
-        _this.mapRef1.current.leafletElement.eachLayer(function(layer){
-          if (!(layer instanceof L.TileLayer.Iiif)) {
-            layer.remove()
-          }
-        });
-        leafletLeftGeoJSON.addTo(_this.mapRef1.current.leafletElement)
-        _this.mapRef2.current.leafletElement.eachLayer(function(layer){
-          if (!(layer instanceof L.TileLayer)) {
-            layer.remove()
-          }
-        });
-        leafletRightGeoJSON.addTo(_this.mapRef2.current.leafletElement)
-
-        // store the ref for future access to content
-
-        _this._editableFG = reactFGref;
-      });
-    }
-  }
-
-  getLeftControlPoints() {
-    var controlPointsAsFeatures = [];
-    let rc = this.state.rc;
-    this.state.controlPoints.forEach(function(element) {
-      console.log("CP = " + element.x + " - " + element.y + " - " + element.pointid)
-      let c = rc.unproject([element.x, element.y])
-      console.log("CP unprojected = " + c)
-      controlPointsAsFeatures.push({"type": "Point", "coordinates": [c.lng, c.lat], "pointid": element.pointid});
-    });
-    return controlPointsAsFeatures;
-  }
-
-  getRightControlPoints() {
-    var controlPointsAsFeatures = [];
-    this.state.controlPoints.forEach(function(element) {
-      console.log(element)
-      controlPointsAsFeatures.push({"type": "Point", "coordinates": [element.lng, element.lat], "pointid": element.pointid});
-    });
-    return controlPointsAsFeatures;
-  }
 
   _onLeftChange = () => {
     // this._editableFG contains the edited geometry, which can be manipulated through the leaflet API

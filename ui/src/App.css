@@ -33,7 +33,7 @@
 }
 
 .container, .tabscontainer, .react-tabs__tab-panel--selected, .map {
-  height: 60vmin;
+  height: 80vmin;
 }
 
 #map1, #map2 { width: 48%; height: 100%; }

@@ -70,14 +70,14 @@ class FrontendController @Inject()(assets: Assets, errorHandler: HttpErrorHandle
           println("downloadCommand = " + downloadCommand)
           val exitCodeDownload = downloadCommand.!
           println("Download = " + exitCodeDownload)
-          val command = "gdal_translate "+cpsAsString.mkString(" ")+" native.jpg translate.tif"
+          val command = "gdal_translate "+cpsAsString.mkString(" ")+" -co TILED=YES -co COMPRESS=JPEG native.jpg translate.tif"
           println("COMMAND = " + command)
           val exitCodeTranslate = command.!
           println("EXIT CODE TRANSLATE = " + exitCodeTranslate)
-          val warpCommand = "gdalwarp -of GTiff -t_srs EPSG:4326 -overwrite translate.tif output.tif"
+          val warpCommand = "gdalwarp -of GTiff -t_srs EPSG:4326 -overwrite -co TILED=YES -co COMPRESS=JPEG translate.tif output.tif"
           val exitCodeWarp = warpCommand.!
           println("EXIT CODE WARP = " + exitCodeWarp)
-          val tileCommand = "gdal2tiles.py --profile=mercator -z 1-15 output.tif ui/public/tiles"
+          val tileCommand = "gdal2tiles.py --profile=mercator -z 1-13 output.tif ui/public/tiles"
           val exitCodeTile = tileCommand.!
           println("EXIT CODE TILE = " + exitCodeTile)
           Ok(Json.toJson(exitCodeTile))

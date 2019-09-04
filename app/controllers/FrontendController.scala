@@ -9,7 +9,11 @@ import play.api.libs.functional.syntax._
 
 import sys.process._
 import java.net.URL
-import java.io.File
+import java.io.{BufferedWriter, File, FileWriter}
+
+import utils.GitHelper
+import org.eclipse.jgit.api.Git
+
 /**
   * Frontend controller managing all static resource associate routes.
   * @param assets Assets controller reference.
@@ -45,6 +49,19 @@ class FrontendController @Inject()(assets: Assets, errorHandler: HttpErrorHandle
 
       bodyAsJson match {
         case JsSuccess(body, _) => {
+          val repositoryPath = "/tmp/mygitrepo"
+          GitHelper.openOrCreateRepository(new File((repositoryPath))).map(repo => {
+            val file = new File(repositoryPath, "georefmd.json")
+            val bw = new BufferedWriter(new FileWriter(file))
+            bw.write(Json.stringify(Json.toJson(request.body)))
+            bw.close()
+            val git = Git.wrap(repo)
+            println(s"GIT object : $git")
+            println(s"Repository ${git.getRepository}")
+            git.add().addFilepattern("georefmd.json").call()
+            git.commit().setMessage("Commit from FrontendController").call()
+          })
+
           println("URL = " + body.url)
           println("CP = " + body.points)
           val cpsAsString = body.points.flatMap(cp=>Seq("-gcp", s"${cp.x} ${cp.y} ${cp.long} ${cp.lat}"))

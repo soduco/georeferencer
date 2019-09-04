@@ -1,21 +1,16 @@
 import React, {Component} from 'react';
 import {
-  BrowserRouter as Router,
-  Route,
-  Link
+  BrowserRouter as Router
 } from 'react-router-dom';
 
-import reactLogo from './images/react.svg';
-import playLogo from './images/play.svg';
-import scalaLogo from './images/scala.svg';
 import Client from "./Client";
 import DoubleView from "./DoubleView";
 
 import './App.css';
 
-const Tech = ({match}) => {
-  return <div>Current Route: {match.params.tech}</div>
-};
+//const Tech = ({match}) => {
+//  return <div>Current Route: {match.params.tech}</div>
+//};
 
 
 class App extends Component {

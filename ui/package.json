@@ -26,8 +26,6 @@
     "leaflet-iiif": "^2.0.1",
     "leaflet-rastercoords": "^1.0.3",
     "leaflet-extra-markers": "^1.1.0",
-    "georaster": "0.6.2",
-    "georaster-layer-for-leaflet": "^0.2.5",
     "jquery": "^3.4.1"
   },
   "devDependencies": {
